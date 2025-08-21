@@ -22,6 +22,10 @@ VOLTAGE_LOWER = 267     # Lower voltage threshold
 INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
+MIN_LIMIT = 1800  # safety floor
+SUN_THRESHOLD = 500     # max difference to allow increasing
+SUN_DIFF_MAX = 600      # if difference exceeds this, reduce
+SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 # Polling interval
 SLEEP_TIME = 5          # seconds
@@ -87,11 +91,15 @@ while True:
             if (current_limit - inverter_power) <= SUN_THRESHOLD:
                 ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
 
-        # Decrease logic
+        # Decrease logic if voltage too high
         if grid_voltage > VOLTAGE_UPPER:
-            ideal_limit = max(current_limit - DECREMENT, 0)
+            ideal_limit = max(current_limit - DECREMENT, MIN_LIMIT)
 
-        # Send request if different
+        # Reduce if sun not enough
+        if (ideal_limit - inverter_power) > SUN_DIFF_MAX:
+            ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, MIN_LIMIT)
+
+        # Only send request if ideal limit changed
         if ideal_limit != current_limit:
             send_limit_request(ideal_limit)
 
