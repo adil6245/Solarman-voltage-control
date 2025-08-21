@@ -23,8 +23,8 @@ INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
 MIN_LIMIT = 1800  # safety floor
-SUN_THRESHOLD = 500     # max difference to allow increasing
-SUN_DIFF_MAX = 600      # if difference exceeds this, reduce
+SUN_THRESHOLD = 700     # max difference to allow increasing
+SUN_DIFF_MAX = 900      # if difference exceeds this, reduce
 SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 # Polling interval
