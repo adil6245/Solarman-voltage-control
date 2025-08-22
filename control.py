@@ -82,7 +82,7 @@ def read_signed_register(client, reg):
 def get_min_limit():
     """Return time-adjusted minimum export limit."""
     now = datetime.datetime.now().time()
-    if now.hour >= 16:  # after 4 pm
+    if now.hour >= 16 or now.hour < 7:  # after 4 pm
         return MIN_LIMIT_AFTER
     return MIN_LIMIT
 
