@@ -104,7 +104,7 @@ def send_limit_request(new_limit):
                 "0035": {"v": new_limit},
                 "00F3": {"v": "1"},
                 "00CE": {"v": "20"},
-                "00F8": {"v": "0"}
+                "00F8": {"v": "1"}
             }
         }),
         "orderTimeout": 60
