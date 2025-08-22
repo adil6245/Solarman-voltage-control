@@ -130,7 +130,7 @@ while True:
     try:
         grid_voltage = read_voltage(client)
         current_limit = read_register(client, 53)
-        inverter_power = read_register(client, 136)
+        inverter_power = read_signed_register(client, 136)
         current_export = read_signed_register(client, 134)
         current_utl = read_signed_register(client, 176)
         ideal_limit = current_limit
