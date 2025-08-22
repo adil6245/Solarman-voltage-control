@@ -147,13 +147,14 @@ while True:
         if grid_voltage > VOLTAGE_UPPER:
             ideal_limit = max(current_limit - DECREMENT, get_min_limit())
             current_action = f"Decreasing limit to {ideal_limit}"
-            if get_min_limit() > MIN_LIMIT and ideal_limit == current_limit:
-                current_action = "Unchanged"
 
         # Reduce if sun not enough
         if (ideal_limit - inverter_power) > SUN_DIFF_MAX:
             ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
             current_action = f"Decreasing limit to {ideal_limit}"
+
+        if ideal_limit == current_limit:
+            current_action = "Unchanged"
 
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action])
         # Only send request if ideal limit changed
