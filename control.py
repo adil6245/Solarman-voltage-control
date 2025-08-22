@@ -147,7 +147,7 @@ while True:
         if grid_voltage > VOLTAGE_UPPER:
             ideal_limit = max(current_limit - DECREMENT, get_min_limit())
             current_action = f"Decreasing limit to {ideal_limit}"
-            if get_min_limit() > MIN_LIMIT and ideal_limit != current_limit:
+            if get_min_limit() > MIN_LIMIT and ideal_limit == current_limit:
                 current_action = "Unchanged"
 
         # Reduce if sun not enough
