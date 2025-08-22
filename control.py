@@ -132,10 +132,11 @@ while True:
         current_limit = read_register(client, 53)
         inverter_power = read_register(client, 136)
         current_export = read_signed_register(client, 134)
+        current_utl = read_signed_register(client, 176)
         ideal_limit = current_limit
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W ")
-        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage])
+        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl])
         # Increase logic
         if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
             if (current_limit - inverter_power) <= SUN_THRESHOLD:
