@@ -3,6 +3,8 @@ import json
 import requests
 from pysolarmanv5 import PySolarmanV5
 import datetime
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 # -------------------- CONFIG --------------------
@@ -32,6 +34,23 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 # Polling interval
 SLEEP_TIME = 5          # seconds
+
+# -------------------- GOOGLE SHEETS SETUP --------------------
+# Define scope
+scope = ["https://spreadsheets.google.com/feeds", 
+         "https://www.googleapis.com/auth/drive"]
+
+# Path to your downloaded credentials JSON file
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    "service_account.json", scope
+)
+
+# Authorize client
+client_gs = gspread.authorize(creds)
+
+# Open sheet (make sure your service account email has edit access to it!)
+sheet = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").sheet1
+# -------------------------------------------------------------
 
 # -------------------- FUNCTIONS --------------------
 def init_client():
@@ -114,8 +133,9 @@ while True:
         inverter_power = read_register(client, 136)
         current_export = read_signed_register(client, 134)
         ideal_limit = current_limit
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W ")
-
+        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage])
         # Increase logic
         if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
             if (current_limit - inverter_power) <= SUN_THRESHOLD:
