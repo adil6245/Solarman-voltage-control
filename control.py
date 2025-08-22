@@ -2,6 +2,8 @@ import time
 import json
 import requests
 from pysolarmanv5 import PySolarmanV5
+import datetime
+
 
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
@@ -23,6 +25,7 @@ INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
 MIN_LIMIT = 1200  # safety floor
+MIN_LIMIT_AFTER = 2000
 SUN_THRESHOLD = 700     # max difference to allow increasing
 SUN_DIFF_MAX = 900      # if difference exceeds this, reduce
 SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
@@ -56,6 +59,13 @@ def read_signed_register(client, reg):
     if raw > 32767:
         raw -= 65536
     return raw
+
+def get_min_limit():
+    """Return time-adjusted minimum export limit."""
+    now = datetime.datetime.now().time()
+    if now.hour >= 16:  # after 4 pm
+        return MIN_LIMIT_AFTER
+    return MIN_LIMIT
 
 def send_limit_request(new_limit):
     payload = {
@@ -113,13 +123,15 @@ while True:
 
         # Decrease logic if voltage too high
         if grid_voltage > VOLTAGE_UPPER:
-            ideal_limit = max(current_limit - DECREMENT, MIN_LIMIT)
+            ideal_limit = max(current_limit - DECREMENT, get_min_limit())
 
         # Reduce if sun not enough
         if (ideal_limit - inverter_power) > SUN_DIFF_MAX:
-            ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, MIN_LIMIT)
+            ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
 
         # Only send request if ideal limit changed
+        # Enforce minimum based on time of day
+        ideal_limit = max(ideal_limit, get_min_limit())
         if ideal_limit != current_limit:
             print(f"Setting Limit: {ideal_limit} W ")
             send_limit_request(ideal_limit)
