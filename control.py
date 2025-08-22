@@ -22,7 +22,7 @@ VOLTAGE_LOWER = 267     # Lower voltage threshold
 INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
-MIN_LIMIT = 1800  # safety floor
+MIN_LIMIT = 1200  # safety floor
 SUN_THRESHOLD = 700     # max difference to allow increasing
 SUN_DIFF_MAX = 900      # if difference exceeds this, reduce
 SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
@@ -30,15 +30,32 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 # Polling interval
 SLEEP_TIME = 5          # seconds
 
-# -------------------- INIT CLIENT --------------------
-client = PySolarmanV5(LOGGER_IP, LOGGER_SN)
+# -------------------- FUNCTIONS --------------------
+def init_client():
+    """Initialize the Solarman client."""
+    while True:
+        try:
+            client = PySolarmanV5(LOGGER_IP, LOGGER_SN)
+            print("Client initialized successfully.")
+            return client
+        except Exception as e:
+            print("Failed to initialize client:", e)
+            print("Retrying in 5 seconds...")
+            time.sleep(5)
 
-def read_voltage():
+def read_voltage(client):
     raw = client.read_holding_registers(150, 1)[0]
     return raw / 10.0
 
-def read_register(reg):
+def read_register(client, reg):
     return client.read_holding_registers(reg, 1)[0]
+
+def read_signed_register(client, reg):
+    """Read a single 16-bit signed register."""
+    raw = client.read_holding_registers(reg, 1)[0]
+    if raw > 32767:
+        raw -= 65536
+    return raw
 
 def send_limit_request(new_limit):
     payload = {
@@ -54,8 +71,8 @@ def send_limit_request(new_limit):
             "inputParam": {
                 "00F4": {"v": "0"},
                 "00F8-1": {"v": "0000000"},
-                "00F5": {"v": "2100"},   # Keep as placeholder
-                "0035": {"v": new_limit}, # Desired limit
+                "00F5": {"v": "2100"},
+                "0035": {"v": new_limit},
                 "00F3": {"v": "1"},
                 "00CE": {"v": "20"},
                 "00F8": {"v": "0"}
@@ -78,14 +95,17 @@ def send_limit_request(new_limit):
 
 # -------------------- MAIN LOOP --------------------
 previous_power = 0
+client = init_client()
+
 while True:
     try:
-        grid_voltage = read_voltage()
-        current_limit = read_register(53)   # Reg 53 = current export limit
-        inverter_power = read_register(136) # Reg 136 = actual inverter power
-
+        grid_voltage = read_voltage(client)
+        current_limit = read_register(client, 53)
+        inverter_power = read_register(client, 136)
+        current_export = read_signed_register(client, 134)
         ideal_limit = current_limit
-        print(f"Grid Voltage: {grid_voltage:.1f} V | Current Limit: {current_limit} W | Inverter Power: {inverter_power} W | Ideal Limit: {ideal_limit} W")
+        print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W ")
+
         # Increase logic
         if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
             if (current_limit - inverter_power) <= SUN_THRESHOLD:
@@ -101,11 +121,14 @@ while True:
 
         # Only send request if ideal limit changed
         if ideal_limit != current_limit:
+            print(f"Setting Limit: {ideal_limit} W ")
             send_limit_request(ideal_limit)
 
         previous_power = inverter_power
         time.sleep(SLEEP_TIME)
 
     except Exception as e:
-        print("Error:", e)
-        time.sleep(SLEEP_TIME)
+        print("Error encountered:", e)
+        print("Reinitializing client...")
+        time.sleep(5)
+        client = init_client()
