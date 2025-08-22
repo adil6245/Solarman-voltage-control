@@ -134,22 +134,26 @@ while True:
         current_export = read_signed_register(client, 134)
         current_utl = read_signed_register(client, 176)
         ideal_limit = current_limit
+        current_action = "Unchanged"
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W ")
-        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl])
         # Increase logic
         if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
             if (current_limit - inverter_power) <= SUN_THRESHOLD:
                 ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
+                current_action = f"Increasing limit to {ideal_limit}"
 
         # Decrease logic if voltage too high
         if grid_voltage > VOLTAGE_UPPER:
             ideal_limit = max(current_limit - DECREMENT, get_min_limit())
+            current_action = f"Decreasing limit to {ideal_limit}"
 
         # Reduce if sun not enough
         if (ideal_limit - inverter_power) > SUN_DIFF_MAX:
             ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
+            current_action = f"Decreasing limit to {ideal_limit}"
 
+        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action])
         # Only send request if ideal limit changed
         # Enforce minimum based on time of day
         ideal_limit = max(ideal_limit, get_min_limit())
