@@ -133,13 +133,14 @@ while True:
         inverter_power = read_signed_register(client, 136)
         current_export = read_signed_register(client, 134)
         current_utl = read_signed_register(client, 176)
+        battery_charge = read_signed_register(client, 190)
         ideal_limit = current_limit
         current_action = "Unchanged"
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W ")
+        print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W | Battery Charge: {battery_charge} W")
         # Increase logic
         if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
-            if (current_limit - inverter_power) <= SUN_THRESHOLD:
+            if (current_limit - (inverter_power - battery_charge)) <= SUN_THRESHOLD:
                 ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
                 current_action = f"Increasing limit to {ideal_limit}"
 
@@ -149,14 +150,14 @@ while True:
             current_action = f"Decreasing limit to {ideal_limit}"
 
         # Reduce if sun not enough
-        if (ideal_limit - inverter_power) > SUN_DIFF_MAX:
+        if (ideal_limit - (inverter_power - battery_charge)) > SUN_DIFF_MAX:
             ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
             current_action = f"Decreasing limit to {ideal_limit}"
 
         if ideal_limit == current_limit:
             current_action = "Unchanged"
 
-        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action])
+        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge])
         # Only send request if ideal limit changed
         # Enforce minimum based on time of day
         ideal_limit = max(ideal_limit, get_min_limit())
