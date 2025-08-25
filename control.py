@@ -50,7 +50,7 @@ client_gs = gspread.authorize(creds)
 
 # Open sheet (make sure your service account email has edit access to it!)
 sheet = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").sheet1
-sheet2 = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").worksheet("logs")
+# sheet2 = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").worksheet("logs")
 # -------------------------------------------------------------
 
 # -------------------- FUNCTIONS --------------------
