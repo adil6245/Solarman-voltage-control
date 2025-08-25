@@ -118,10 +118,10 @@ def send_limit_request(new_limit):
         r = requests.post(SOLARMAN_API, json=payload, headers=headers, timeout=10)
         if r.status_code == 200:
             print(f"Export limit successfully set to {new_limit} W")
-            sheet2.append_row([f"Export limit successfully set to {new_limit} W"])
+            sheet.append_row([f"Export limit successfully set to {new_limit} W"])
         else:
             print(f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}")
-            sheet2.append_row([f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}"])
+            sheet.append_row([f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}"])
     except Exception as e:
         print("Error sending request:", e)
 
@@ -173,7 +173,7 @@ while True:
 
     except Exception as e:
         print("Error encountered:", e)
-        sheet2.append_row([f"Error encountered: {e}"])
+        sheet.append_row([f"Error encountered: {e}"])
         print("Reinitializing client...")
         time.sleep(5)
         client = init_client()
