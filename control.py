@@ -50,6 +50,7 @@ client_gs = gspread.authorize(creds)
 
 # Open sheet (make sure your service account email has edit access to it!)
 sheet = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").sheet1
+sheet2 = client_gs.open_by_key("14lR66an_8AHzbQzT14iZO1A8Px2sxf83hHEwXADq67w").worksheet("logs")
 # -------------------------------------------------------------
 
 # -------------------- FUNCTIONS --------------------
@@ -117,8 +118,10 @@ def send_limit_request(new_limit):
         r = requests.post(SOLARMAN_API, json=payload, headers=headers, timeout=10)
         if r.status_code == 200:
             print(f"Export limit successfully set to {new_limit} W")
+            sheet.append_row([f"Export limit successfully set to {new_limit} W"])
         else:
             print(f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}")
+            sheet.append_row([f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}"])
     except Exception as e:
         print("Error sending request:", e)
 
@@ -170,6 +173,7 @@ while True:
 
     except Exception as e:
         print("Error encountered:", e)
+        sheet.append_row([f"Error encountered: {e}"])
         print("Reinitializing client...")
         time.sleep(5)
         client = init_client()
