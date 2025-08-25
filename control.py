@@ -33,7 +33,7 @@ SUN_DIFF_MAX = 900      # if difference exceeds this, reduce
 SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 # Polling interval
-SLEEP_TIME = 5          # seconds
+SLEEP_TIME = 10          # seconds
 
 # -------------------- GOOGLE SHEETS SETUP --------------------
 # Define scope
