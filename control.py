@@ -21,7 +21,7 @@ GATEWAY_SN = "2331491601"
 
 # Limits & thresholds
 MAX_LIMIT = 5000        # Max export limit
-VOLTAGE_UPPER = 269     # Upper voltage threshold
+VOLTAGE_UPPER = 268.5     # Upper voltage threshold
 VOLTAGE_LOWER = 267     # Lower voltage threshold
 INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease
