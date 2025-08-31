@@ -173,7 +173,10 @@ while True:
 
     except Exception as e:
         print("Error encountered:", e)
-        sheet.append_row([f"Error encountered: {e}"])
+        try:
+                sheet.append_row([f"Error encountered: {e}"])
+        except Exception as log_err:
+                print("Failed to log error:", log_err)
         print("Reinitializing client...")
         time.sleep(5)
         client = init_client()
