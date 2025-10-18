@@ -92,6 +92,7 @@ def get_min_limit():
     return MIN_LIMIT
 
 def send_limit_request(new_limit, enable_selling="1"):
+    global tripEvent
     payload = {
         "product": "0_5407_1",
         "deviceSn": DEVICE_SN,
@@ -126,8 +127,10 @@ def send_limit_request(new_limit, enable_selling="1"):
             sheet.append_row([f"Export limit successfully set to {new_limit} W"])
         else:
             print(f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}")
+            tripEvent = False
             sheet.append_row([f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}"])
     except Exception as e:
+        tripEvent = False
         print("Error sending request:", e)
 
 # -------------------- MAIN LOOP --------------------
@@ -193,6 +196,7 @@ while True:
         try:
                 sheet.append_row([f"Error encountered: {e}"])
         except Exception as log_err:
+                tripEvent = False
                 print("Failed to log error:", log_err)
         print("Reinitializing client...")
         time.sleep(5)
