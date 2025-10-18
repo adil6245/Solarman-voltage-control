@@ -24,13 +24,17 @@ MAX_LIMIT = 5000        # Max export limit
 VOLTAGE_UPPER = 267.5     # Upper voltage threshold 268 for summer
 VOLTAGE_LOWER = 266    # Lower voltage threshold 267 for summer
 INCREMENT = 100         # Watts to increase
-DECREMENT = 400         # Watts to decrease 200 prev
+DECREMENT = 200         # Watts to decrease 200 prev
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
 MIN_LIMIT = 1000  # safety floor
 MIN_LIMIT_AFTER = 2000
 SUN_THRESHOLD = 700     # max difference to allow increasing
 SUN_DIFF_MAX = 900      # if difference exceeds this, reduce
 SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
+
+disableExport = False
+tripEvent = False
+
 
 # Polling interval
 SLEEP_TIME = 10          # seconds
@@ -87,7 +91,7 @@ def get_min_limit():
         return MIN_LIMIT_AFTER
     return MIN_LIMIT
 
-def send_limit_request(new_limit):
+def send_limit_request(new_limit, enable_selling="1"):
     payload = {
         "product": "0_5407_1",
         "deviceSn": DEVICE_SN,
@@ -99,7 +103,8 @@ def send_limit_request(new_limit):
         "operationType": 5,
         "extendWeb": json.dumps({
             "inputParam": {
-                "00F4": {"v": "0"},
+                "00F4": {"v": "1"}, # selling or zero export
+                "00F7":{"v":enable_selling},  # selling enabled or disabled
                 "00F8-1": {"v": "0000000"},
                 "00F5": {"v": "2100"},
                 "0035": {"v": new_limit},
@@ -141,32 +146,44 @@ while True:
         current_action = "Unchanged"
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W | Battery Charge: {battery_charge} W")
-        # Increase logic
-        if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
-            if (current_limit - (inverter_power - battery_charge)) <= SUN_THRESHOLD:
-                ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
-                current_action = f"Increasing limit to {ideal_limit}"
 
-        # Decrease logic if voltage too high
-        if grid_voltage > VOLTAGE_UPPER:
-            ideal_limit = max(current_limit - DECREMENT, get_min_limit())
-            current_action = f"Decreasing limit to {ideal_limit}"
+        if current_export > -50 and grid_voltage > 260:
+            current_action = f"Disabling Export {current_limit}"
+            disableExport = True
+            
+        else:
+            disableExport = False
+            # Increase logic
+            if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
+                if (current_limit - (inverter_power - battery_charge)) <= SUN_THRESHOLD:
+                    ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
+                    current_action = f"Increasing limit to {ideal_limit}"
 
-        # Reduce if sun not enough
-        if (ideal_limit - (inverter_power - battery_charge)) > SUN_DIFF_MAX:
-            ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
-            current_action = f"Decreasing limit to {ideal_limit}"
+            # Decrease logic if voltage too high
+            if grid_voltage > VOLTAGE_UPPER:
+                ideal_limit = max(current_limit - DECREMENT, get_min_limit())
+                current_action = f"Decreasing limit to {ideal_limit}"
 
-        if ideal_limit == current_limit:
-            current_action = "Unchanged"
+            # Reduce if sun not enough
+            if (ideal_limit - (inverter_power - battery_charge)) > SUN_DIFF_MAX:
+                ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
+                current_action = f"Decreasing limit to {ideal_limit}"
+
+            if ideal_limit == current_limit:
+                current_action = "Unchanged"
 
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge])
-        # Only send request if ideal limit changed
-        # Enforce minimum based on time of day
-        ideal_limit = max(ideal_limit, get_min_limit())
-        if ideal_limit != current_limit:
-            print(f"Setting Limit: {ideal_limit} W ")
-            send_limit_request(ideal_limit)
+        if disableExport and not tripEvent:
+            send_limit_request(ideal_limit, "0")
+            tripEvent = True
+        else:
+            tripEvent = False
+            # Only send request if ideal limit changed
+            # Enforce minimum based on time of day
+            ideal_limit = max(ideal_limit, get_min_limit())
+            if ideal_limit != current_limit:
+                print(f"Setting Limit: {ideal_limit} W ")
+                send_limit_request(ideal_limit)
 
         previous_power = inverter_power
         time.sleep(SLEEP_TIME)
