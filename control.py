@@ -150,7 +150,7 @@ while True:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W | Battery Charge: {battery_charge} W")
 
-        if current_export > -50 and grid_voltage > 260 and not disableExport:
+        if ((current_export > -50 and grid_voltage > 260) or (grid_voltage > 270 and current_limit == MIN_LIMIT)) and not disableExport:
             current_action = f"Disabling Export {current_limit}"
             disableExport = True
         else:
