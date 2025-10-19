@@ -150,12 +150,10 @@ while True:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(f"Grid Voltage: {grid_voltage:.1f} V | Inverter Power: {inverter_power} W | Current Limit: {current_limit} W | Current Export: {current_export} W | Battery Charge: {battery_charge} W")
 
-        if current_export > -50 and grid_voltage > 260:
+        if current_export > -50 and grid_voltage > 260 and not disableExport:
             current_action = f"Disabling Export {current_limit}"
             disableExport = True
-            
         else:
-            disableExport = False
             # Increase logic
             if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
                 if (current_limit - (inverter_power - battery_charge)) <= SUN_THRESHOLD:
@@ -184,8 +182,9 @@ while True:
             # Only send request if ideal limit changed
             # Enforce minimum based on time of day
             ideal_limit = max(ideal_limit, get_min_limit())
-            if ideal_limit != current_limit:
+            if ideal_limit != current_limit or disableExport:
                 print(f"Setting Limit: {ideal_limit} W ")
+                disableExport = False
                 send_limit_request(ideal_limit)
 
         previous_power = inverter_power
