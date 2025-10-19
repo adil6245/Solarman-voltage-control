@@ -111,7 +111,7 @@ def send_limit_request(new_limit, enable_selling="1"):
                 "0035": {"v": new_limit},
                 "00F3": {"v": "1"},
                 "00CE": {"v": "20"},
-                "00F8": {"v": "1"}  # remove battery usage time of use
+                "00F8": {"v": "0"}  # remove battery usage time of use
             }
         }),
         "orderTimeout": 60
