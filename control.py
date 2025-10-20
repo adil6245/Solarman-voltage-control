@@ -21,8 +21,8 @@ GATEWAY_SN = "2331491601"
 
 # Limits & thresholds
 MAX_LIMIT = 5000        # Max export limit
-VOLTAGE_UPPER = 268.5     # Upper voltage threshold 268 for summer
-VOLTAGE_LOWER = 267    # Lower voltage threshold 267 for summer
+VOLTAGE_UPPER = 269     # Upper voltage threshold 268.6 for summer
+VOLTAGE_LOWER = 267.5    # Lower voltage threshold 267 for summer
 INCREMENT = 100         # Watts to increase
 DECREMENT = 200         # Watts to decrease 200 prev
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power
@@ -34,10 +34,11 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 disableExport = False
 tripEvent = False
+lastStateRaised = False
 
 
 # Polling interval
-SLEEP_TIME = 10          # seconds
+SLEEP_TIME = 5          # seconds
 
 # -------------------- GOOGLE SHEETS SETUP --------------------
 # Define scope
@@ -155,11 +156,13 @@ while True:
             disableExport = True
         else:
             # Increase logic
-            if grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power:
+            if (grid_voltage < VOLTAGE_LOWER and inverter_power > previous_power) and not lastStateRaised:
                 if (current_limit - (inverter_power - battery_charge)) <= SUN_THRESHOLD:
                     ideal_limit = min(current_limit + INCREMENT, MAX_LIMIT)
                     current_action = f"Increasing limit to {ideal_limit}"
-
+                    lastStateRaised = True
+            else:
+                lastStateRaised = False
             # Decrease logic if voltage too high
             if grid_voltage > VOLTAGE_UPPER:
                 ideal_limit = max(current_limit - DECREMENT, get_min_limit())
