@@ -178,13 +178,13 @@ while True:
             send_limit_request(ideal_limit, "0")
             tripEvent = True
         else:
-            tripEvent = False
             # Only send request if ideal limit changed
             # Enforce minimum based on time of day
             ideal_limit = max(ideal_limit, get_min_limit())
-            if ideal_limit != current_limit or disableExport:
+            if ideal_limit != current_limit:
                 print(f"Setting Limit: {ideal_limit} W ")
                 disableExport = False
+                tripEvent = False
                 send_limit_request(ideal_limit)
 
         previous_power = inverter_power
