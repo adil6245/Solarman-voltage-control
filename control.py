@@ -38,7 +38,8 @@ lastStateRaised = False
 
 
 # Polling interval
-SLEEP_TIME = 5          # seconds
+SLEEP_TIME_DAY = 5          # seconds
+SLEEP_TIME_NIGHT = 10          # seconds
 
 # -------------------- GOOGLE SHEETS SETUP --------------------
 # Define scope
@@ -191,7 +192,11 @@ while True:
                 send_limit_request(ideal_limit)
 
         previous_power = inverter_power
-        time.sleep(SLEEP_TIME)
+        now = datetime.datetime.now().time()
+        if now.hour >= 16 or now.hour < 7:  # after 4 pm
+            time.sleep(SLEEP_TIME_NIGHT)
+        else:
+            time.sleep(SLEEP_TIME_DAY)
 
     except Exception as e:
         print("Error encountered:", e)
