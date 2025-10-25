@@ -169,10 +169,10 @@ while True:
                 ideal_limit = max(current_limit - DECREMENT, get_min_limit())
                 current_action = f"Decreasing limit to {ideal_limit}"
 
-            # Reduce if sun not enough
-            if (ideal_limit - (inverter_power - battery_charge)) > SUN_DIFF_MAX:
-                ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
-                current_action = f"Decreasing limit to {ideal_limit}"
+            # Reduce if sun not enough commenting for now
+            # if (ideal_limit - (inverter_power - battery_charge)) > SUN_DIFF_MAX:
+            #     ideal_limit = max(ideal_limit - SUN_DIFF_DECREASE, get_min_limit())
+            #     current_action = f"Decreasing limit to {ideal_limit}"
 
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
