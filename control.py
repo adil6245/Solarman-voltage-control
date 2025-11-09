@@ -11,7 +11,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 LOGGER_IP = "192.168.18.40"
 LOGGER_SN = 2331491601
 SOLARMAN_API = "https://globaldc-pro.solarmanpv.com/order-s/order/action/control/send"
-ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJ0b3BHcm91cElkIjpudWxsLCJncm91cElkIjpudWxsLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIiwiYXBwSWQiOm51bGx9LCJleHAiOjE3Njc0MzIzOTgsIm1kYyI6IkZPUkVJR05fMSIsImF1dGhvcml0aWVzIjpbImFsbCJdLCJqdGkiOiIzYmM4ZWYxOS0wY2IxLTRiMjctYmYzNi1lYzg3ODhiMjgyZjgiLCJjbGllbnRfaWQiOiJ0ZXN0In0.IlYtwbrf-UQab-41esq5WzIOwVRgOIrQ6PpVSyBSMoKxckZOCLxRpCf_M__Z4cCWbqRxZUCPw5YlCS4atjPJB3z4wBjEK05mgdKaPBPZHycGoXkjOxAQuw6FGvgd2a226HHikY72eaGLImYqRew-suR-CfabfK-XfHtlnHFOuvavrMATQYeGmay-CTExm56_ze6yy9grdxNGzhP42dQcmtXzMVgW7QZQtyeTavQ3TIBO_sPgDf8MQFGIpu2o2kXELP1XRQTbKjjVoojumU0v6-Furq7C0JKxmkEttZ9N-vnB8CQGpB_msSiM6pmXPJqKnJYF1I7UoModgm-TQC_Xmw"  # Replace with your valid token
+ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJ0b3BHcm91cElkIjpudWxsLCJncm91cElkIjpudWxsLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIiwiYXBwSWQiOm51bGx9LCJleHAiOjE3Njc4NjY3NDUsIm1kYyI6IkZPUkVJR05fMSIsImF1dGhvcml0aWVzIjpbImFsbCJdLCJqdGkiOiJiMTE1YjIzZS1jZjdiLTRkNTAtOWU5OC1kMjQ2MjdkZDlmYWQiLCJjbGllbnRfaWQiOiJ0ZXN0In0.Qw3XwT3Dy-cth0oRSAuRHtaU4EwxXUQ6m09gUJkpEkRHDQ9XXkz__eYl0jSE5JIhD7unkKaEVVPqIbCreY0c2AoaH9YhLHqnlFfDCOq-Vr9Fy5Bg_axTrmpWJZgMGYXuUIjJf3a-k0fdCkKuZ844LRr5hBCV34eavKodXd1NG6MOeyLSh-Nvrz8d5QAS7d7USm_2YFZPpx9Vg0Lfi_ia7PYX5kPrKCtrGDMF1d5Y_A6UMF3s633C4BO3cq4Rx33sk2mFOeKNpvpKMlShrpO2CeUg0eyN1h9x18yUC96jMkML_N3eyyg4el54Zr89nJfArp-4T-B4udt7vdWUtYuUuw"  # Replace with your valid token
 
 # Device-specific values
 DEVICE_SN = "2203274322"
@@ -22,7 +22,7 @@ GATEWAY_SN = "2331491601"
 # Limits & thresholds
 MAX_LIMIT = 5000        # Max export limit
 VOLTAGE_UPPER = 273.5     # Upper voltage threshold 268.5 for summer
-VOLTAGE_LOWER = 267.5    # Lower voltage threshold 267 for summer
+VOLTAGE_LOWER = 268.5    # Lower voltage threshold 267 for summer
 INCREMENT = 100         # Watts to increase
 DECREMENT = 300         # Watts to decrease 200 prev
 SUN_THRESHOLD = 300     # Max difference allowed between limit and actual power
