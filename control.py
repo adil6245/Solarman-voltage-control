@@ -204,6 +204,12 @@ while True:
         except Exception as log_err:
                 tripEvent = False
                 print("Failed to log error:", log_err)
+        # kill the previous client's threads
+        try:
+            client.disconnect()
+            print("Client disconnected cleanly.")
+        except Exception:
+            print("Client disconnection failed (may already be closed).")
         print("Reinitializing client...")
         time.sleep(5)
         client = init_client()
