@@ -21,8 +21,8 @@ GATEWAY_SN = "2331491601"
 
 # Limits & thresholds
 MAX_LIMIT = 6000        # Max export limit
-VOLTAGE_UPPER = 279     # Upper voltage threshold 268.5 for summer
-VOLTAGE_LOWER = 273.5    # Lower voltage threshold 267 for summer
+VOLTAGE_UPPER = 278     # Upper voltage threshold 268.5 for summer
+VOLTAGE_LOWER = 272.5    # Lower voltage threshold 267 for summer
 INCREMENT = 100         # Watts to increase
 DECREMENT = 300         # Watts to decrease 200 prev
 SUN_THRESHOLD = 500     # Max difference allowed between limit and actual power 300 before
