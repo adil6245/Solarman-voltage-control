@@ -6,6 +6,16 @@ import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# tunya
+import tinytuya
+
+device = tinytuya.OutletDevice(
+    "bf7955d069141119f4xctf",
+    "192.168.18.75",
+    "9Dz8Nn(cPoA~CS!I"
+)
+
+device.set_version(3.5)
 
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
@@ -176,8 +186,9 @@ while True:
 
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
-
-        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge])
+        data = device.status()
+        power_w = data["dps"]["118"]
+        sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + current_export])
         if disableExport and not tripEvent:
             send_limit_request(ideal_limit, "0")
             tripEvent = True
