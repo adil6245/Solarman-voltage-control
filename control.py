@@ -8,14 +8,74 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 # tunya
 import tinytuya
+import base64
 
 device = tinytuya.OutletDevice(
     "bf7955d069141119f4xctf",
     "192.168.18.75",
     "9Dz8Nn(cPoA~CS!I"
 )
-
 device.set_version(3.5)
+device.set_socketPersistent(True)
+device.set_socketTimeout(1)
+
+
+def decode_phase(b64):
+    raw = base64.b64decode(b64)
+    if len(raw) < 8:
+        return None
+    voltage = int.from_bytes(raw[0:2], "big") / 10.0
+    current = int.from_bytes(raw[2:5], "big") / 1000.0
+    power   = int.from_bytes(raw[5:8], "big")          # watts
+    return voltage, current, power
+
+
+state = {"dps": {}}
+device.status(nowait=True)
+last_poll = last_print = last_beat = 0.0
+
+def _power_from(dps):
+    """Pull watts out of a dps dict, or None if this packet has no power data."""
+    if "6" in dps:                          # phase_a blob: volts, amps, watts
+        raw = base64.b64decode(dps["6"])
+        if len(raw) >= 8:
+            return int.from_bytes(raw[5:8], "big")
+    return dps.get("118")     
+
+def read_power(timeout=6.0, skip=1, debug=False):
+    """Return the breaker's power draw in watts, or None on timeout.
+
+    Discards `skip` power-bearing packets before accepting one, since the first
+    reply is the device's stored value and the recomputed one lands after.
+    """
+    device.cache_clear()
+
+    while device.receive():                 # toss anything left from last call
+        pass
+
+    device.set_value(106, True, nowait=True)                 # 'refresh sensors'
+    device.updatedps(["6", "118"], nowait=True)
+    device.status(nowait=True)
+
+    seen = 0
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        data = device.receive()
+        if not (isinstance(data, dict) and "dps" in data):
+            continue
+
+        watts = _power_from(data["dps"])
+        if watts is None:
+            continue
+
+        seen += 1
+        if debug:
+            print(f"  packet {seen}: {watts} W  {data['dps']}")
+        if seen > skip:
+            return watts
+
+    return None
+
 
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
@@ -186,8 +246,7 @@ while True:
 
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
-        data = device.status()
-        power_w = data["dps"]["118"]
+        power_w = read_power()  
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + current_export])
         if disableExport and not tripEvent:
             send_limit_request(ideal_limit, "0")
