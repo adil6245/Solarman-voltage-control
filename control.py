@@ -247,6 +247,8 @@ while True:
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
         power_w = read_power()  
+        if power_w is None:
+            power_w = 0
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + (current_export*2)])
         if disableExport and not tripEvent:
             send_limit_request(ideal_limit, "0")
