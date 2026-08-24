@@ -13,7 +13,10 @@ import base64
 device = tinytuya.OutletDevice(
     "bf7955d069141119f4xctf",
     "192.168.18.75",
-    "9Dz8Nn(cPoA~CS!I"
+    "9Dz8Nn(cPoA~CS!I",
+    connection_timeout=1,
+    connection_retry_limit=1,     # don't let tinytuya block on its own retries
+    connection_retry_delay=0,
 )
 device.set_version(3.5)
 device.set_socketPersistent(True)
@@ -42,37 +45,66 @@ def _power_from(dps):
             return int.from_bytes(raw[5:8], "big")
     return dps.get("118")     
 
+
+def _is_error(data):
+    """True for tinytuya's error payloads, e.g. device unreachable."""
+    return not isinstance(data, dict) or "Error" in data or "Err" in data
+
 def read_power(timeout=6.0, skip=1, debug=False):
-    """Return the breaker's power draw in watts, or None on timeout.
+    """Return the breaker's power draw in watts, or None if it's unreachable or
+    silent. Always returns within roughly `timeout` seconds — never blocks the
+    caller, even during a blackout.
 
     Discards `skip` power-bearing packets before accepting one, since the first
     reply is the device's stored value and the recomputed one lands after.
     """
-    device.cache_clear()
-
-    while device.receive():                 # toss anything left from last call
-        pass
-
-    device.set_value(106, True, nowait=True)                 # 'refresh sensors'
-    device.updatedps(["6", "118"], nowait=True)
-    device.status(nowait=True)
-
-    seen = 0
     deadline = time.time() + timeout
-    while time.time() < deadline:
-        data = device.receive()
-        if not (isinstance(data, dict) and "dps" in data):
-            continue
 
-        watts = _power_from(data["dps"])
-        if watts is None:
-            continue
+    try:
+        device.cache_clear()
 
-        seen += 1
+        # toss anything left from the last call, but never spin: stop on the
+        # first empty read, on an error payload, or after a short window
+        drain_until = time.time() + 0.6
+        while time.time() < drain_until:
+            data = device.receive()
+            if not data:
+                break
+            if _is_error(data):
+                if debug:
+                    print(f"  device unreachable: {data}")
+                return 0
+
+        device.set_value(106, True, nowait=True)              # 'refresh sensors'
+        device.updatedps(["6", "118"], nowait=True)
+        device.status(nowait=True)
+
+        seen = 0
+        while time.time() < deadline:
+            data = device.receive()
+            if not data:
+                continue
+            if _is_error(data):
+                if debug:
+                    print(f"  device unreachable: {data}")
+                return 0
+            if "dps" not in data:
+                continue
+
+            watts = _power_from(data["dps"])
+            if watts is None:
+                continue
+
+            seen += 1
+            if debug:
+                print(f"  packet {seen}: {watts} W  {data['dps']}")
+            if seen > skip:
+                return watts
+
+    except Exception as e:                  # socket died, device vanished, etc.
         if debug:
-            print(f"  packet {seen}: {watts} W  {data['dps']}")
-        if seen > skip:
-            return watts
+            print(f"  read_power failed: {e}")
+        return 0
 
     return 0
 
