@@ -323,10 +323,10 @@ def toggle_beep(toggle=False):
 # -------------------- MAIN LOOP --------------------
 previous_power = 0
 client = init_client()
-threading.Thread(
-    target=power_monitor,
-    daemon=True
-).start()
+#threading.Thread(
+#    target=power_monitor,
+#    daemon=True
+#).start()
 while True:
     try:
         grid_voltage = read_voltage(client)
