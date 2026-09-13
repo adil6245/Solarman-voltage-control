@@ -50,7 +50,7 @@ def _is_error(data):
     """True for tinytuya's error payloads, e.g. device unreachable."""
     return not isinstance(data, dict) or "Error" in data or "Err" in data
 
-def read_power(timeout=6.0, skip=1, debug=False):
+def read_power(timeout=6.0, skip=2, debug=True):
     """Return the breaker's power draw in watts, or None if it's unreachable or
     silent. Always returns within roughly `timeout` seconds — never blocks the
     caller, even during a blackout.
