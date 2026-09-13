@@ -271,10 +271,10 @@ def toggle_beep(toggle=False):
         "Authorization": f"Bearer {ACCESS_TOKEN}",
         "Content-Type": "application/json"
     }
+    toggleState = toggle
     try:
         r = requests.post(SOLARMAN_API, json=payload, headers=headers, timeout=10)
         if r.status_code == 200:
-            toggleState = toggle
             print(f"toggle set to {toggle}")
             sheet.append_row([f"toggle successfully set to {toggle}"])
         else:
