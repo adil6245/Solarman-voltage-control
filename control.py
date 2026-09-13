@@ -135,7 +135,7 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 disableExport = False
 tripEvent = False
-toggleState = False
+toggleState = True
 lastStateRaised = False
 
 
