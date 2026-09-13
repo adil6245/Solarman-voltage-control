@@ -113,7 +113,7 @@ def read_power(timeout=6.0, skip=1, debug=False):
 LOGGER_IP = "192.168.18.40"
 LOGGER_SN = 2331491601
 SOLARMAN_API = "https://globaldc-pro.solarmanpv.com/order-s/order/action/control/send"
-ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTc4ODA3NTA5NSwibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImJiNzVmYmQ3LTgyZmEtNDkyNC04MjZkLTFmMmNjODM1NTNlMSIsImNsaWVudF9pZCI6InRlc3QifQ.Ju8m0w57plGkIwp1ztYN1rB80cYgYX-oEnThVXMdfwF3KulIT9l7cjlbwGLaXg-55karxbD50fUdF4cp11eW0LdIjUW-R1dflS4Flc5c6SMt-HcUCfzrvJwFAQI41Vc7FnGht5fwDPZGOo9G-Mx9_ATk1i9ffssM0YR95f-WTj5lFaEvvzVgqZdnfiV4P0UvSyFNDL9KvxlBJhyLQRnepdjA0jd3vDVJr7Fe7RmjkRx9wKn4OSJpsI5eRC2jXf9vZ70kWGeUDSt61SqZT5QNgEW_yIxXBmNKNAwGU616nmEaTJX13addISCBUPha-EcQcdT9iij1Z_tHwWMR6JhiKw"  # Replace with your valid token
+ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTc4OTQwNzMzMiwibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImNiOTZkYjIzLTQzMDMtNDEzMi1hMDhkLWNjNzBjZjEwY2YxOCIsImNsaWVudF9pZCI6InRlc3QifQ.cxBXoF-vk4-VB-vHjiiSmgXad233n-AB9yvEb8chx8CT4-q0Epu_60Fn7mOuJJSS9rbnAGNTzV3x3gKoalAt1gNykt8jUA4otUl5UN0Chu88GUFjqN5x1SgDwOv5v7nLC614PmAy811qaWolYmy77D_UXYqnYRlKoqqbzVvnuorQ8oVFy71ojVRi8aMO_kr8wRUOnhSlH6erscKd2p1V8sUkTCRvcQctrh2Wc7nq0KteAI3DRNsd7e_EptpsZt5zDhO8vSOt_I9IEHpubeVD7Gss9JqAb2lqF48JJAqxmtH27PMGpVZ0s5Nu4lef4s93-22SlapR3SZGnWmup_T7wQ"  # Replace with your valid token
 
 # Device-specific values
 DEVICE_SN = "2203274322"
@@ -135,6 +135,7 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 
 disableExport = False
 tripEvent = False
+toggleState = False
 lastStateRaised = False
 
 
@@ -236,6 +237,53 @@ def send_limit_request(new_limit, enable_selling="1"):
         tripEvent = False
         print("Error sending request:", e)
 
+
+def toggle_beep(toggle=False):
+    global toggleState
+    if toggleState == toggle:
+        return
+    
+    payload = {
+        "product": "0_5407_1",
+        "deviceSn": DEVICE_SN,
+        "deviceId": DEVICE_ID,
+        "gatewayId": GATEWAY_ID,
+        "gatewaySn": GATEWAY_SN,
+        "code": "s_dcsz2",
+        "codeGroup": "G1101",
+        "operationType": 5,
+        "extendWeb": json.dumps({
+        "inputParam": {
+            "00D2": {"v": "20"},
+            "00D3": {"v": "90"},
+            "00DC": {"v": 52},
+            "00DD": {"v": 58},
+            "00DE": {"v": 56 if toggle else 52.2},
+            "00D6": {"v": "1"},
+            "0146-14": {"v": "0"},
+            "0146": {"v": "0"},
+            "000F": {"v": "0"}
+        }
+    }),
+        "orderTimeout": 60
+    }
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    try:
+        r = requests.post(SOLARMAN_API, json=payload, headers=headers, timeout=10)
+        if r.status_code == 200:
+            toggleState = toggle
+            print(f"toggle set to {toggle}")
+            sheet.append_row([f"toggle successfully set to {toggle}"])
+        else:
+            print(f"Failed to toggle. Status code: {r.status_code}, Response: {r.text}")
+            sheet.append_row([f"Failed to toggle. Status code: {r.status_code}, Response: {r.text}"])
+    except Exception as e:
+        print("Error sending request:", e)
+
+
 # -------------------- MAIN LOOP --------------------
 previous_power = 0
 client = init_client()
@@ -280,6 +328,11 @@ while True:
                 current_action = "Unchanged"
         power_w = read_power()  
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + (current_export*2)])
+        if power_w == 0 and grid_voltage > 100:
+            toggle_beep(True)
+        else:
+            toggle_beep(False)
+        
         if disableExport and not tripEvent:
             send_limit_request(ideal_limit, "0")
             tripEvent = True
