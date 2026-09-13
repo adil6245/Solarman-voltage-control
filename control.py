@@ -108,43 +108,6 @@ def read_power(timeout=6.0, skip=2, debug=True):
 
     return 0
 
-#threading
-import threading
-power_watts = 0
-power_lock = threading.Lock()
-
-def power_monitor():
-    global power_watts
-
-    while True:
-        try:
-            data = device.receive()
-
-            if not data:
-                continue
-
-            if _is_error(data):
-                print("Breaker disconnected")
-                continue
-
-            if "dps" not in data:
-                continue
-
-            watts = _power_from(data["dps"])
-
-            if watts is not None:
-                with power_lock:
-                    power_watts = watts
-
-        except Exception as e:
-            try:
-                device.close()
-            except Exception as e2:
-                print(f"Power monitor error: {e2}")
-                pass
-            print(f"Power monitor error: {e}")
-            time.sleep(2)
-
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
 LOGGER_SN = 2331491601
@@ -323,10 +286,7 @@ def toggle_beep(toggle=False):
 # -------------------- MAIN LOOP --------------------
 previous_power = 0
 client = init_client()
-#threading.Thread(
-#    target=power_monitor,
-#    daemon=True
-#).start()
+
 while True:
     try:
         grid_voltage = read_voltage(client)
@@ -365,9 +325,7 @@ while True:
 
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
-        # Experimental threading
         power_w = read_power()  
-        # power_w = power_watts
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + (current_export*2)])
         if power_w == 0 and grid_voltage > 100:
             toggle_beep(True)
