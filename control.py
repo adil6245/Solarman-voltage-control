@@ -366,8 +366,8 @@ while True:
             if ideal_limit == current_limit:
                 current_action = "Unchanged"
         # Experimental threading
-        # power_w = read_power()  
-        power_w = power_watts
+        power_w = read_power()  
+        # power_w = power_watts
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + (current_export*2)])
         if power_w == 0 and grid_voltage > 100:
             toggle_beep(True)
