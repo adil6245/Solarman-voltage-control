@@ -327,11 +327,12 @@ while True:
                 current_action = "Unchanged"
         power_w = read_power()  
         sheet.append_row([timestamp, inverter_power, current_limit, current_export, grid_voltage, current_utl, current_action, battery_charge, power_w,power_w + (current_export*2)])
-        if power_w == 0 and grid_voltage > 100:
-            toggle_beep(True)
-        else:
-            toggle_beep(False)
-        
+        if datetime.datetime.now().time() >= 16 or now.hour < 7:  # after 4 pm
+            if power_w == 0 and grid_voltage > 100:
+                toggle_beep(True)
+            else:
+                toggle_beep(False)
+
         if disableExport and not tripEvent:
             send_limit_request(ideal_limit, "0")
             tripEvent = True
