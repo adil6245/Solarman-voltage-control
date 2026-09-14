@@ -75,7 +75,7 @@ def read_power(timeout=6.0, skip=2, debug=True):
             if _is_error(data):
                 if debug:
                     print(f"  device unreachable: {data}")
-                return 0
+                return 1
 
         device.set_value(106, True, nowait=True)              # 'refresh sensors'
         device.updatedps(["6", "118"], nowait=True)
