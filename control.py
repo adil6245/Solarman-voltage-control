@@ -100,7 +100,7 @@ def read_power(timeout=6.0, skip=2, debug=True):
             seen += 1
             if debug:
                 print(f"  packet {seen}: {watts} W  {data['dps']}")
-            if seen > skip or last_power != watts:
+            if seen > skip or (last_power != watts and watts != 0):
                 last_power = watts
                 return watts
 
