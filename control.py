@@ -50,7 +50,9 @@ def _is_error(data):
     """True for tinytuya's error payloads, e.g. device unreachable."""
     return not isinstance(data, dict) or "Error" in data or "Err" in data
 
+last_power = 0
 def read_power(timeout=6.0, skip=2, debug=True):
+    global last_power
     """Return the breaker's power draw in watts, or None if it's unreachable or
     silent. Always returns within roughly `timeout` seconds — never blocks the
     caller, even during a blackout.
@@ -98,7 +100,8 @@ def read_power(timeout=6.0, skip=2, debug=True):
             seen += 1
             if debug:
                 print(f"  packet {seen}: {watts} W  {data['dps']}")
-            if seen > skip:
+            if seen > skip or last_power != watts:
+                last_power = watts
                 return watts
 
     except Exception as e:                  # socket died, device vanished, etc.
