@@ -107,9 +107,9 @@ def read_power(timeout=6.0, skip=2, debug=True):
     except Exception as e:                  # socket died, device vanished, etc.
         if debug:
             print(f"  read_power failed: {e}")
-        return 0
+        return 1
 
-    return 0
+    return 1
 
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
