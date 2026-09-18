@@ -251,6 +251,7 @@ def toggle_beep(toggle=False):
     if toggleCount < 2:
         print(f"tried to toggle {toggleCount}")
         return
+    toggleCount = 0
     payload = {
         "product": "0_5407_1",
         "deviceSn": DEVICE_SN,
