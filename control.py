@@ -246,6 +246,7 @@ def toggle_beep(toggle=False):
     global toggleState
     global toggleCount
     if toggleState == toggle:
+        toggleCount = 0
         return
     toggleCount += 1
     if toggleCount < 2:
