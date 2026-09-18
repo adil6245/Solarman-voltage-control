@@ -139,6 +139,7 @@ SUN_DIFF_DECREASE = 300 # amount to reduce when sun not enough
 disableExport = False
 tripEvent = False
 toggleState = True
+toggleCount = 0
 lastStateRaised = False
 
 
@@ -243,9 +244,13 @@ def send_limit_request(new_limit, enable_selling="1"):
 
 def toggle_beep(toggle=False):
     global toggleState
+    global toggleCount
     if toggleState == toggle:
         return
-    
+    toggleCount += 1
+    if toggleCount < 2:
+        print(f"tried to toggle {toggleCount}")
+        return
     payload = {
         "product": "0_5407_1",
         "deviceSn": DEVICE_SN,
