@@ -111,12 +111,102 @@ def read_power(timeout=6.0, skip=2, debug=True):
 
     return 1
 
+"""
+Solarman token refresh — standalone, stdlib only (no pip installs, no files needed).
+
+Run it and it fires the refresh_token grant, then prints the new access_token
+and refresh_token if the server returns them.
+
+    python solarman_refresh.py
+
+Just paste a *current* refresh_token into REFRESH_TOKEN below before running.
+"""
+
+import urllib.request
+import urllib.parse
+import urllib.error
+
+# ---------------------------------------------------------------------------
+# CONFIG — only REFRESH_TOKEN normally needs changing.
+# ---------------------------------------------------------------------------
+TOKEN_URL = "https://globalhome.solarmanpv.com/oauth2-s/oauth/token"
+
+
+
+# These extra params are what the web app sends. Leaving any of them out is the
+# usual reason a hand-built request gets rejected.
+CLIENT_ID = "test"
+SYSTEM    = "SOLARMAN"
+AREA      = "PK"
+ORIGIN_ID = "d5d8ec3702cb458a2445697a454cdef3"
+def refresh():
+    global ACCESS_TOKEN
+    global REFRESH_TOKEN
+    # Body MUST be x-www-form-urlencoded (NOT JSON, NOT multipart/form-data).
+    body = urllib.parse.urlencode({
+        "grant_type":    "refresh_token",
+        "refresh_token": REFRESH_TOKEN,
+        "client_id":     CLIENT_ID,
+        "system":        SYSTEM,
+        "area":          AREA,
+        "origin_id":     ORIGIN_ID,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(TOKEN_URL, data=body, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    req.add_header("Accept", "application/json, text/plain, */*")
+    # Some deployments check origin/referer — cheap to include, avoids surprises.
+    req.add_header("Origin", "https://globalhome.solarmanpv.com")
+    req.add_header("Referer", "https://globalhome.solarmanpv.com/plant/infos/device")
+    req.add_header("User-Agent",
+                   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            raw = resp.read().decode("utf-8")
+            status = resp.status
+    except urllib.error.HTTPError as e:
+        raw = e.read().decode("utf-8", "replace")
+        status = e.code
+    except urllib.error.URLError as e:
+        print(f"Network error: {e.reason}")
+        sheet.append_row([f"No access_token in response"])
+        return
+
+    print(f"HTTP {status}")
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        print("Non-JSON response:")
+        print(raw[:2000])
+        return
+
+    if "access_token" in data:
+        ACCESS_TOKEN = data["access_token"]
+        REFRESH_TOKEN = data.get("refresh_token")
+        print("\nSUCCESS\n")
+        print("access_token :", data["access_token"])
+        print("refresh_token:", data.get("refresh_token"))
+        print("expires_in   :", data.get("expires_in"))
+        print("token_type   :", data.get("token_type"))
+        sheet.append_row([f"Got access_token in response"])
+
+    else:
+        # Typical failures: invalid_grant (token expired or already used),
+        # invalid_token, unauthorized.
+        print("\nNo access_token in response:")
+        print(json.dumps(data, indent=2))
+        sheet.append_row([f"No access_token in response"])
+
+
 # -------------------- CONFIG --------------------
 LOGGER_IP = "192.168.18.40"
 LOGGER_SN = 2331491601
 SOLARMAN_API = "https://globaldc-pro.solarmanpv.com/order-s/order/action/control/send"
 ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTc5MDA5MzIwMywibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImQ1OGM4MWE5LTVhZDctNDVhZS1iODE2LWUwMzk1M2IxMjAzNyIsImNsaWVudF9pZCI6InRlc3QifQ.CQHaU6Lnrgp2qOFWWo-3I88HJK_BAEHAe4GHvMGcHK4zZ-QniPXsc-cq4N5ASqkKPYYQR0y-qZIzyBd1WsRJFaYMEDhFnzzDL9yuywFbY7w-2gQQmp0x7yD6dYPUmwpP7mD0J363RFdj1Aq-IzpW-bfAB7LTWxGk-u0XHBYvXHGE52-_z_0YRsh9JJmjaa9l-CUnth_YENdiGm-2x5Ogc__18_YRYMbToqYteqq1FAgALDSN2YLh46_OsnJ9Ktxv0lAX6LVXTmUwwgj08CdiQeq61Ya69dEPPNuEP6IflH8oTVs7O0QnEj1t2qVSl2nUXVwc5OMEQY0eJAFagAE_rA"  # Replace with your valid token
-
+REFRESH_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiYXRpIjoiNWJiMzYwYmYtYWNmZi00ZmNmLTg1MDQtNjlmNzc3NjZkNDVlIiwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTgwNTU1ODc5NSwibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImVhNzJkMjE0LTNiYzYtNGQyNC05NjYyLTdkMjA0MzkyNjlmYyIsImNsaWVudF9pZCI6InRlc3QifQ.MIvNOqiQ4X3R3YTKBnHkLR_Yc5-tzIXBfMJKapi3ARprm_udj_OXzlJYQkhhpLInh_6-72Ofd3rBh7R8E942pA87EUhqi9cxt4oaSLUjblI_Kq0-QYfsN319bFhy6JZ_lTJWP3h80nUrAvHmblwsYiwOyNrqbzzDaYWlOcWBHW1JvTSmKUfDKK5ERLzqltTFt2cOe5FGLV8ycla9q4PuwC96gIsJFjMK05TMop3ddF2ag_qYHFVvTxr8ohCbs-CJWGEvI70pzIHQ5Awzjcd-CSAa3ktk60OaMF4PB3fIQIcC5an0416BZCIv0VouoOUUSr2AYruIoQrT_Rtpd91sCw"
 
 # Device-specific values
 DEVICE_SN = "2203274322"
@@ -237,6 +327,11 @@ def send_limit_request(new_limit, enable_selling="1"):
             print(f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}")
             tripEvent = False
             sheet.append_row([f"Failed to set limit. Status code: {r.status_code}, Response: {r.text}"])
+            # Check if the request failed due to an expired/invalid token
+            if r.status_code == 401 or "invalid_token" in r.text:
+                print("Token expired. Running refresh method...")
+                sheet.append_row([f"attempt to refresh token"])
+                refresh()
     except Exception as e:
         tripEvent = False
         print("Error sending request:", e)
@@ -290,6 +385,11 @@ def toggle_beep(toggle=False):
         else:
             print(f"Failed to toggle. Status code: {r.status_code}, Response: {r.text}")
             sheet.append_row([f"Failed to toggle. Status code: {r.status_code}, Response: {r.text}"])
+            # Check if the request failed due to an expired/invalid token
+            if r.status_code == 401 or "invalid_token" in r.text:
+                print("Token expired. Running refresh method...")
+                sheet.append_row([f"attempt to refresh token"])
+                refresh()
     except Exception as e:
         print("Error sending request:", e)
 
