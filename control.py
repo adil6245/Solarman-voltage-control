@@ -393,6 +393,7 @@ def toggle_beep(toggle=False):
                 sheet.append_row([f"attempt to refresh token"])
                 if refresh():
                     toggleCount = 2
+                    toggleState = not toggle
                     sheet.append_row([f"resending request"])
                     toggle_beep(toggle)
     except Exception as e:
