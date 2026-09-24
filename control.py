@@ -172,7 +172,7 @@ def refresh():
     except urllib.error.URLError as e:
         print(f"Network error: {e.reason}")
         sheet.append_row([f"No access_token in response"])
-        return
+        return False
 
     print(f"HTTP {status}")
 
@@ -181,7 +181,7 @@ def refresh():
     except json.JSONDecodeError:
         print("Non-JSON response:")
         print(raw[:2000])
-        return
+        return False
 
     if "access_token" in data:
         ACCESS_TOKEN = data["access_token"]
@@ -192,6 +192,7 @@ def refresh():
         print("expires_in   :", data.get("expires_in"))
         print("token_type   :", data.get("token_type"))
         sheet.append_row([f"Got access_token in response"])
+        return True
 
     else:
         # Typical failures: invalid_grant (token expired or already used),
@@ -199,6 +200,7 @@ def refresh():
         print("\nNo access_token in response:")
         print(json.dumps(data, indent=2))
         sheet.append_row([f"No access_token in response"])
+        return False
 
 
 # -------------------- CONFIG --------------------
@@ -206,7 +208,7 @@ LOGGER_IP = "192.168.18.40"
 LOGGER_SN = 2331491601
 SOLARMAN_API = "https://globaldc-pro.solarmanpv.com/order-s/order/action/control/send"
 ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTc5MDA5MzIwMywibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImQ1OGM4MWE5LTVhZDctNDVhZS1iODE2LWUwMzk1M2IxMjAzNyIsImNsaWVudF9pZCI6InRlc3QifQ.CQHaU6Lnrgp2qOFWWo-3I88HJK_BAEHAe4GHvMGcHK4zZ-QniPXsc-cq4N5ASqkKPYYQR0y-qZIzyBd1WsRJFaYMEDhFnzzDL9yuywFbY7w-2gQQmp0x7yD6dYPUmwpP7mD0J363RFdj1Aq-IzpW-bfAB7LTWxGk-u0XHBYvXHGE52-_z_0YRsh9JJmjaa9l-CUnth_YENdiGm-2x5Ogc__18_YRYMbToqYteqq1FAgALDSN2YLh46_OsnJ9Ktxv0lAX6LVXTmUwwgj08CdiQeq61Ya69dEPPNuEP6IflH8oTVs7O0QnEj1t2qVSl2nUXVwc5OMEQY0eJAFagAE_rA"  # Replace with your valid token
-REFRESH_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiYXRpIjoiNWJiMzYwYmYtYWNmZi00ZmNmLTg1MDQtNjlmNzc3NjZkNDVlIiwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTgwNTU1ODc5NSwibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImVhNzJkMjE0LTNiYzYtNGQyNC05NjYyLTdkMjA0MzkyNjlmYyIsImNsaWVudF9pZCI6InRlc3QifQ.MIvNOqiQ4X3R3YTKBnHkLR_Yc5-tzIXBfMJKapi3ARprm_udj_OXzlJYQkhhpLInh_6-72Ofd3rBh7R8E942pA87EUhqi9cxt4oaSLUjblI_Kq0-QYfsN319bFhy6JZ_lTJWP3h80nUrAvHmblwsYiwOyNrqbzzDaYWlOcWBHW1JvTSmKUfDKK5ERLzqltTFt2cOe5FGLV8ycla9q4PuwC96gIsJFjMK05TMop3ddF2ag_qYHFVvTxr8ohCbs-CJWGEvI70pzIHQ5Awzjcd-CSAa3ktk60OaMF4PB3fIQIcC5an0416BZCIv0VouoOUUSr2AYruIoQrT_Rtpd91sCw"
+REFRESH_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiIwX2FkaWw2MjQ1QGdtYWlsLmNvbV8yIiwibW9kaWZ5X3Bhc3N3b3JkIjoxLCJzY29wZSI6WyJhbGwiXSwiYXRpIjoiM2I5OTkyYmYtZjU5NC00OTc1LWEwYTctN2I5ZDVlYzNlYmI0IiwiZGV0YWlsIjp7Im9yZ2FuaXphdGlvbklkIjowLCJyb2xlSWQiOi0xLCJ1c2VySWQiOjkzODc0MywidmVyc2lvbiI6MTAwMiwiaWRlbnRpZmllciI6ImFkaWw2MjQ1QGdtYWlsLmNvbSIsImlkZW50aXR5VHlwZSI6MiwibWRjIjoiRk9SRUlHTl8xIn0sImV4cCI6MTgwNTU1ODc5NSwibWRjIjoiRk9SRUlHTl8xIiwiYXV0aG9yaXRpZXMiOlsiYWxsIl0sImp0aSI6ImVhNzJkMjE0LTNiYzYtNGQyNC05NjYyLTdkMjA0MzkyNjlmYyIsImNsaWVudF9pZCI6InRlc3QifQ.VTTCtlk_mAEtG7O8XPReTx7B0hw_q5wtE2g8pt6IJsue3blxjo3PB0gO44t_xycNUPdq9eLnF_RdCyux0vFOc8ixz9Q0NtAwZbKhxfONu8DcxxHgi8X88WckV6FOjozyJQUdUiqLBf0KGAPtIfrbUHIynT6goI_DI1MuOgnBWelkSWgRzB3OxuqVa_rRR5sRNBnXPmXtpj7fE5yGg4r26u1wGwOYZBAK1pFaYqr7sZGa0mrqdFRzGMX8X-XZB9AoNr0COuYVwCsPR6-pwaex4c6vu0-7MNOaC_qcKdFGBjMEVYvW-w4-HP44Pc53gDICtavZsKcPGD6Og1oyjt5ZHA"
 
 # Device-specific values
 DEVICE_SN = "2203274322"
@@ -389,7 +391,8 @@ def toggle_beep(toggle=False):
             if r.status_code == 401 or "invalid_token" in r.text:
                 print("Token expired. Running refresh method...")
                 sheet.append_row([f"attempt to refresh token"])
-                refresh()
+                if refresh():
+                    toggle_beep(toggle)
     except Exception as e:
         print("Error sending request:", e)
 
