@@ -342,6 +342,8 @@ def send_limit_request(new_limit, enable_selling="1"):
 def toggle_beep(toggle=False):
     global toggleState
     global toggleCount
+    print(f"toggle  state {toggleState}")
+    print(f"toggle  Count {toggleCount}")
     if toggleState == toggle:
         toggleCount = 0
         return
