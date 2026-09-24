@@ -392,6 +392,7 @@ def toggle_beep(toggle=False):
                 print("Token expired. Running refresh method...")
                 sheet.append_row([f"attempt to refresh token"])
                 if refresh():
+                    toggleCount = 2
                     toggle_beep(toggle)
     except Exception as e:
         print("Error sending request:", e)
