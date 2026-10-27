@@ -450,7 +450,7 @@ while True:
         if now.hour >= 16 or now.hour < 7:  # after 4 pm
             if power_w == 0 and grid_voltage > 100:
                 # toggle_beep(True)
-                True
+                toggle_beep(False)
             else:
                 toggle_beep(False)
 
