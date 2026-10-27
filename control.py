@@ -449,7 +449,7 @@ while True:
         now = datetime.datetime.now().time()
         if now.hour >= 16 or now.hour < 7:  # after 4 pm
             if power_w == 0 and grid_voltage > 100:
-                toggle_beep(True)
+                # toggle_beep(True)
             else:
                 toggle_beep(False)
 
